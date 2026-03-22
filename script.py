@@ -17,6 +17,13 @@ while True:
         break
     print("Invalid input. Please enter y or n.")
 
+while True:
+    raw = input("Save last frame as PNG? (y/n): ").strip().lower()
+    if raw in ("y", "n"):
+        SAVE_PNG = raw == "y"
+        break
+    print("Invalid input. Please enter y or n.")
+
 print("Select a video file")
 root = tk.Tk()
 root.withdraw()
@@ -32,7 +39,8 @@ if not INPUT:
 name = input("Enter output file name (without extension): ").strip()
 if not name:
     name = "output"
-OUTPUT = os.path.join(os.path.dirname(INPUT), f"{name}.mp4")
+OUTPUT     = os.path.join(os.path.dirname(INPUT), f"{name}.mp4")
+OUTPUT_PNG = os.path.join(os.path.dirname(INPUT), f"{name}.png")
 
 cap    = cv2.VideoCapture(INPUT)
 fps    = cap.get(cv2.CAP_PROP_FPS)
@@ -40,6 +48,8 @@ width  = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
 out = cv2.VideoWriter(OUTPUT, cv2.VideoWriter_fourcc(*"avc1"), fps, (width, height), isColor=False)
+
+last_frame = None
 
 while True:
     ret, frame = cap.read()
@@ -50,7 +60,12 @@ while True:
     if INVERT:
         bw = cv2.bitwise_not(bw)
     out.write(bw)
+    last_frame = bw
 
 cap.release()
 out.release()
 print(f"Done! Saved to: {OUTPUT}")
+
+if SAVE_PNG and last_frame is not None:
+    cv2.imwrite(OUTPUT_PNG, last_frame)
+    print(f"Last frame saved to: {OUTPUT_PNG}")
